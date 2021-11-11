@@ -92,27 +92,27 @@ Queremos ahora modificar al Observatorio para que pueda resolver todos los reque
 
 Para facilitarles la interacción con dicho servicio y que no tengan que preocuparse por cuestiones propias de la interacción HTTP, les dejamos la clase `RestCountriesAPI`, que provee tres métodos para hacer consultas:
 
-```kotlin
+```typescript
 // Devuelve una lista con todos los países del mundo.
-todosLosPaises(): List<Country>
+todosLosPaises(): Promise<Country[]>
 
 // Devuelve todos los países cuyo nombre incluya el String que viene por parámetro. 
 // Ejemplo: si ponemos "guay" devolverá a Paraguay y Uruguay, 
 // pero si ponemos "uruguay" devolverá solo a este último.
-buscarPaisesPorNombre(nombre: String): List<Country>
+buscarPaisesPorNombre(nombre: string): Promise<Country[]>
 
 // Devuelve al país cuyo código ISO 3 coincide con el parámetro. 
 // Arroja un error si no existe ningún país con ese código.
-paisConCodigo(codigoIso3: String): Country
+paisConCodigo(codigoIso3: string): Promise<Country>
 ```
 
 Nótese que los objetos que devuelve esta clase son de tipo `Country`, y que probablemente tengan una estructura diferente a los que ustedes crearon en la etapa anterior. Para no tener que tirar todo el código del `Observatorio`, conviene crear un objeto que oficie de _transformador_ entre el `Country` que devuelve la API y el `Pais` que ustedes crearon.
 
 Un pequeño detalle: esta API devuelve el código de la moneda **pero no** su cotización. Para obtenerla, van a tener que utilizar la `CurrencyConverterAPI`, que también les dejamos en el proyecto. Su interfaz es mucho más sencilla:
 
-```kotlin
+```typescript
 // Dado un código válido de moneda, devuelve la cotización del dólar para esa moneda.
-convertirDolarA(codigoMoneda: String): Double
+convertirDolarA(codigoMoneda: string): Promise<Double>
 ```
 
 :warning: Esta API necesita de una clave que puede [obtenerse aquí](https://free.currencyconverterapi.com/free-api-key), o pedile a tu docente que te facilite una.
@@ -134,11 +134,11 @@ Se pide entonces:
 
 Los tests de la etapa anterior tienen un gran problema - cada vez que los ejecutamos hacen varios llamados a la API. Esto, además de ser bastante más lento que un test "puro", tiene otras desventajas: no podemos correrlos sin acceso a internet, nos acopla fuertemente con un servicio externo, no podemos decidir sobre los datos, etc.
 
-Para solucionar esto, se pide modificar todos los tests que utilicen a las APIs, reemplazandolas por impostores implementados con [mockk](https://mockk.io/).
+Para solucionar esto, se pide modificar todos los tests que utilicen a las APIs, reemplazandolas por impostores implementados con [Mocks de Jest](https://jestjs.io/docs/mock-functions).
 
 ### Etapa 5 - Usando la aplicación
 
-Llegó el momento de realmente conectar a nuestro programa con el mundo real, permitiendo que "cualquier persona" (que tenga una computadora, Kotlin y los conocimientos necesarios para ejecutarlo) pueda utilizarlo.
+Llegó el momento de realmente conectar a nuestro programa con el mundo real, permitiendo que "cualquier persona" (que tenga una computadora, NodeJS y los conocimientos necesarios para ejecutarlo) pueda utilizarlo.
 
 Para ello, vamos a programar una pequeña CLI, _command line interface_ o _interfaz por línea de comandos_, que nos permita acceder a los requerimientos de las dos primeras etapas, trayendo la información de la RestCountries API. El diseño de la interfaz queda librado a su creatividad, siempre y cuando cumpla con los siguientes requerimientos:
 
