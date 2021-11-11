@@ -5,7 +5,7 @@ Lo incluimos en el proyecto únicamente con fines didácticos, para quienes quie
 está hecho. El ejercicio se tiene que resolver sin alterar para nada este archivo.
  */
 
-import { RestAPI } from "./RestAPI";
+import { RestAPI } from "./rest_api";
 
 export class CurrencyConverterAPI extends RestAPI {
   constructor(private apiKey: string) {

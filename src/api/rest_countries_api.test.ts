@@ -1,4 +1,4 @@
-import { Country, RestCountriesAPI } from "./RestCountriesAPI";
+import { Country, RestCountriesAPI } from "./rest_countries_api";
 
 describe("API de países", () => {
   const api = new RestCountriesAPI();

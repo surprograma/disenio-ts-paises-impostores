@@ -1,5 +1,5 @@
 import { map, mergeRight } from "ramda";
-import { RestAPI } from "./RestAPI";
+import { RestAPI } from "./rest_api";
 
 /*
 👀 ¡¡ATENCIÓN!!
@@ -19,10 +19,17 @@ export class RestCountriesAPI extends RestAPI {
   }
 
   async buscarPaisesPorNombre(nombre: string): Promise<Country[]> {
-    return this.obtenerRecurso<Country[]>(
-      `/name/${nombre}`,
-      map(this.inicializarCamposNulos)
+    const data = await this.obtenerRecurso<Country[] | HttpError>(
+      `/name/${nombre}`
     );
+
+    // Horrible, pero la API en vez de tirar un 404,
+    // devuelve un objeto que dice que es un 404.
+    if ("status" in data) {
+      return [];
+    } else {
+      return map(this.inicializarCamposNulos, data);
+    }
   }
 
   async paisConCodigo(codigoIso3: string): Promise<Country> {
@@ -41,6 +48,11 @@ export class RestCountriesAPI extends RestAPI {
 
 // Tomamos solamente un subconjunto de la información que da la API.
 // Todos los campos disponibles pueden verse en http://restcountries.eu/#api-endpoints-response-example.
+
+interface HttpError {
+  status: number;
+  message: string;
+}
 
 export type Country = {
   name: string;
