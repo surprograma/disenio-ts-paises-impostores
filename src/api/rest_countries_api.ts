@@ -57,10 +57,10 @@ interface HttpError {
 export type Country = {
   name: string;
   alpha3Code: string;
-  capital: string;
+  capital: string | null;
   region: string;
   population: number;
-  area: number;
+  area: number | null;
   borders: string[];
   languages: Language[];
   regionalBlocs: RegionalBloc[];

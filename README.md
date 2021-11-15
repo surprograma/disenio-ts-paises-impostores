@@ -6,24 +6,24 @@
 
 El enunciado tiene **mucha** información, van a necesitar leerlo varias veces. La sugerencia es que lo lean entero una vez (para tener una idea general) y luego vuelvan a consultarlo las veces que hagan falta.
 
-Concentrensé en los requerimientos y, excepto que se traben mucho, respeten el orden sugerido. No es necesario que hagan TDD, pero sí sería interesante que vayan creando las distintas clases y métodos a medida que resuelven cada requerimiento y no antes. 
+Concentrensé en los requerimientos y, excepto que se traben mucho, respeten el orden sugerido. No es necesario que hagan TDD, pero sí sería interesante que vayan creando las distintas clases y métodos a medida que resuelven cada requerimiento y no antes.
 
-En otras palabras: trabajen completando cada requerimiento antes de pasar al siguiente, con los tests que aseguran que funciona incluidos. Si al avanzar en los requerimientos les parece necesario refactorizar, adelante, van a tener los tests que garantizan que no rompieron nada. :smirk: 
+En otras palabras: trabajen completando cada requerimiento antes de pasar al siguiente, con los tests que aseguran que funciona incluidos. Si al avanzar en los requerimientos les parece necesario refactorizar, adelante, van a tener los tests que garantizan que no rompieron nada. :smirk:
 
 ## Descripción del dominio
 
 Desde un observatorio de políticas públicas mundiales nos piden desarrollar un sistema para realizar estadísticas sobre distintos países del mundo. Según detallaron, de cada país les interesaría saber:
 
-* su nombre,
-* su código ISO-3 (llamado en realidad [ISO 3166-1 alfa-3](https://es.wikipedia.org/wiki/ISO_3166-1)),
-* su población,
-* su superficie,
-* en qué continente está ubicado,
-* el código de la moneda local ([ISO 4217](https://es.wikipedia.org/wiki/ISO_4217)),
-* la cotización del dólar en la moneda local,
-* la lista de países con los que limita,
-* la lista de bloques regionales en los que participa,
-* la lista de idiomas oficiales que reconoce.
+- su nombre,
+- su código ISO-3 (llamado en realidad [ISO 3166-1 alfa-3](https://es.wikipedia.org/wiki/ISO_3166-1)),
+- su población,
+- su superficie,
+- en qué continente está ubicado,
+- el código de la moneda local ([ISO 4217](https://es.wikipedia.org/wiki/ISO_4217)),
+- la cotización del dólar en la moneda local,
+- la lista de países con los que limita,
+- la lista de bloques regionales en los que participa,
+- la lista de idiomas oficiales que reconoce.
 
 Por simplicidad, manejaremos al continente, los bloques regionales y los idiomas como `String`. Por ejemplo, podríamos representar a Bolivia con los siguientes datos:
 
@@ -36,7 +36,7 @@ continente: "América"
 codigoMoneda: "BOB"
 cotizacionDolar: 6.89
 // Notar que estos son objetos, no strings
-paisesLimitrofes: [argentina, brasil, chile, paraguay, peru]  
+paisesLimitrofes: [argentina, brasil, chile, paraguay, peru]
 bloquesRegionales: ["UNASUR"]
 idiomasOficiales: ["Español", "Quechua", "Aymara"]
 ```
@@ -68,7 +68,7 @@ Modelar los países con los atributos mencionados y resolver los siguientes requ
 
 ### Etapa 2 - Observatorio
 
-Crear al Observatorio, que es un objeto que conoce a todos los países y debe poder responder las consultas que se enuncian a continuación. 
+Crear al Observatorio, que es un objeto que conoce a todos los países y debe poder responder las consultas que se enuncian a continuación.
 
 Para dos países en particular, **cuyos nombres** se envían por parámetro, se pide poder resolver las mismas consultas de la etapa anterior:
 
@@ -88,6 +88,8 @@ Sobre el conjunto de **todos los países**:
 
 ### Etapa 3 - Conectando con el mundo real
 
+#### RestCountriesAPI - info de los países
+
 Queremos ahora modificar al Observatorio para que pueda resolver todos los requerimientos anteriores, pero esta vez interactuando con la [API RestCountries](http://restcountries.eu/). Esta [API](https://es.wikipedia.org/wiki/Interfaz_de_programaci%C3%B3n_de_aplicaciones) es un servicio gratuito que brinda información real sobre los países del mundo.
 
 Para facilitarles la interacción con dicho servicio y que no tengan que preocuparse por cuestiones propias de la interacción HTTP, les dejamos la clase `RestCountriesAPI`, que provee tres métodos para hacer consultas:
@@ -96,19 +98,31 @@ Para facilitarles la interacción con dicho servicio y que no tengan que preocup
 // Devuelve una lista con todos los países del mundo.
 todosLosPaises(): Promise<Country[]>
 
-// Devuelve todos los países cuyo nombre incluya el String que viene por parámetro. 
-// Ejemplo: si ponemos "guay" devolverá a Paraguay y Uruguay, 
+// Devuelve todos los países cuyo nombre incluya el String que viene por parámetro.
+// Ejemplo: si ponemos "guay" devolverá a Paraguay y Uruguay,
 // pero si ponemos "uruguay" devolverá solo a este último.
 buscarPaisesPorNombre(nombre: string): Promise<Country[]>
 
-// Devuelve al país cuyo código ISO 3 coincide con el parámetro. 
+// Devuelve al país cuyo código ISO 3 coincide con el parámetro.
 // Arroja un error si no existe ningún país con ese código.
 paisConCodigo(codigoIso3: string): Promise<Country>
 ```
 
 Nótese que los objetos que devuelve esta clase son de tipo `Country`, y que probablemente tengan una estructura diferente a los que ustedes crearon en la etapa anterior. Para no tener que tirar todo el código del `Observatorio`, conviene crear un objeto que oficie de _transformador_ entre el `Country` que devuelve la API y el `Pais` que ustedes crearon.
 
-Un pequeño detalle: esta API devuelve el código de la moneda **pero no** su cotización. Para obtenerla, van a tener que utilizar la `CurrencyConverterAPI`, que también les dejamos en el proyecto. Su interfaz es mucho más sencilla:
+**⚠️ Importante:** hay algunos atributos cuyos valores **no vienen** para todos los países, y están marcados como anulables en la clase `Country`. Para no tener que modificar los objetos `Pais`, les dejamos algunas decisiones:
+
+1. Si la `capital` viene nula, usar el string `"No especificada"` como capital.
+2. Si el `area` viene nula, usar el mismo valor que tenga para `population` como area.
+3. Si viene más de una `currencies`, utilicen la primera. Y si no viene ninguna, usen `USD` como código de moneda.
+
+> :bulb: **Ayuda:** como parte del pasaje de un `Country` a un `Pais`, van a tener que transformar los códigos de países limítrofes que devuelve la API en objetos Países. Para evitar que se genere un bucle infinito, les recomendamos _no transformar_ los países limítrofes de los limítrofes.
+
+#### CurrencyConverterAPI - cotización
+
+Un pequeño detalle: la RestCountriesAPI devuelve el código de la moneda **pero no** su cotización. Para obtener la cotización, van a tener que utilizar la `CurrencyConverterAPI`, que también les dejamos en el proyecto.
+
+Su interfaz es mucho más sencilla:
 
 ```typescript
 // Dado un código válido de moneda, devuelve la cotización del dólar para esa moneda.
@@ -117,18 +131,19 @@ convertirDolarA(codigoMoneda: string): Promise<Double>
 
 :warning: Esta API necesita de una clave que puede [obtenerse aquí](https://free.currencyconverterapi.com/free-api-key), o pedile a tu docente que te facilite una.
 
+#### Requerimientos
+
 Se pide entonces:
 
 1. Hacer un objeto o clase que sepa cómo transformar un objeto `Country` a un objeto `Pais`. Este objeto va a necesitar conocer a ambas APIs, para poder hacer las consultas necesarias. Incluir los tests correspondientes.
 1. Modificar al Observatorio para que sus consultas interactúen con la API. Utilizando el adaptador que crearon en el requerimiento anterior, no deberían necesitar modificar mucho el código que ya tienen.
 1. En las consultas que buscan países por nombre, arrojar errores si:
-  * Se ingresa ambas veces al mismo país. Ejemplo: `observatorio.sonLimitrofes("Panamá", "Panamá")`.
-  * Alguno/s de los países ingresados no existe/n. Ejemplo: `observatorio.necesitanTraduccion("Venezuela", "Sarasa")`.
-  * Hay más de un país cuyo nombre coincida con el parámetro de búsqueda. Ejemplo: `observatorio.sonPotencialesAliados("mbia", "Cabo Verde")`.
+
+- Se ingresa ambas veces al mismo país. Ejemplo: `observatorio.sonLimitrofes("Panamá", "Panamá")`.
+- Alguno/s de los países ingresados no existe/n. Ejemplo: `observatorio.necesitanTraduccion("Venezuela", "Sarasa")`.
+- Hay más de un país cuyo nombre coincida con el parámetro de búsqueda. Ejemplo: `observatorio.sonPotencialesAliados("mbia", "Cabo Verde")`.
 
 **:warning: Importante:** una vez que conecten al Observatorio con la `RestCountriesAPI`, se les van a romper los tests (porque los datos reales no van a ser los mismos que ustedes inventaron). Los arreglaremos en la etapa siguiente.
-
-**:monocle_face: Pista:** como parte del pasaje de un `Country` a un `Pais`, van a tener que transformar los códigos de países limítrofes que devuelve la API en objetos Países. Para evitar que se genere un bucle infinito, les recomendamos _no transformar_ los países limítrofes de los limítrofes.  
 
 ### Etapa 4 - API impostora
 
@@ -154,9 +169,8 @@ _Caso feliz :smiley:_
 _Error :cry:_
 ![CLI error](assets/cli-error.gif)
 
-
 ## Licencia
-  
+
 Esta obra fue elaborada por [Federico Aloi](https://github.com/faloi) y publicada bajo una [Licencia Creative Commons Atribución-CompartirIgual 4.0 Internacional][cc-by-sa].
 
 [![CC BY-SA 4.0][cc-by-sa-image]][cc-by-sa]
